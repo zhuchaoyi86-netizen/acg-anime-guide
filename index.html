@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACG アニメ速覧ガイド</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="stylesheet" href="styles.css?v=20260526c" />
+  </head>
+  <body>
+    <div class="anime-bg" aria-hidden="true">
+      <div class="bg-pan"></div>
+      <div class="bg-clouds"></div>
+      <div class="bg-neon"></div>
+      <div class="motion-layer" id="motionLayer"></div>
+    </div>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Anime / Comic / Game Navigator</p>
+        <h1 lang="ja">ACG アニメ速覧ガイド</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button" id="randomPick" title="随机推荐" aria-label="随机推荐">
+          <i data-lucide="shuffle"></i>
+        </button>
+        <button class="danger-button" id="clearSaved" title="清空全部收藏">
+          <i data-lucide="trash-2"></i>
+          <span>清空收藏</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="ACG 分类">
+        <section class="panel compact">
+          <div class="sidebar-head">
+            <h2>快速分类</h2>
+            <span class="sidebar-note" id="categorySummary">按题材与制作信息筛选</span>
+          </div>
+          <div class="category-modes" id="categoryModes"></div>
+          <div class="category-list" id="categoryList"></div>
+        </section>
+
+        <section class="panel compact">
+          <div class="sidebar-head">
+            <h2>入门路线</h2>
+            <span class="sidebar-note" id="routeSummary">按系列顺序安排观看路线</span>
+          </div>
+          <div class="route-list">
+            <button class="route active" data-route="fate">Fate 系列</button>
+            <button class="route" data-route="eva">EVA 系列</button>
+            <button class="route" data-route="gundam">高达入门</button>
+            <button class="route" data-route="jojo">JOJO 系列</button>
+            <button class="route" data-route="science">科学 ADV</button>
+            <button class="route" data-route="monogatari">物语系列</button>
+          </div>
+          <div class="route-note" id="routeNote"></div>
+          <ol class="watch-route" id="watchRoute"></ol>
+        </section>
+      </aside>
+
+      <section class="content">
+        <section class="search-band">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="搜索作品、题材、关键词，例如：新海诚 / 异世界 / EVA"
+              autocomplete="off"
+            />
+            <button class="inline-clear" id="clearSearch" title="清空搜索" aria-label="清空搜索">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+          <select id="typeFilter" aria-label="作品类型筛选">
+            <option value="all">全部类型</option>
+            <option value="TV">TV 动画</option>
+            <option value="Movie">剧场版</option>
+            <option value="OVA">OVA / ONA</option>
+            <option value="Original">原创动画</option>
+            <option value="Novel">轻小说改</option>
+            <option value="Game">游戏改</option>
+            <option value="Manga">漫画关联</option>
+            <option value="Donghua">国创动画</option>
+            <option value="Idol">偶像 / 音乐</option>
+            <option value="Mecha">机甲科幻</option>
+            <option value="Special">特别篇</option>
+            <option value="Music">音乐短片</option>
+          </select>
+          <select id="moodFilter" aria-label="观看心情筛选">
+            <option value="all">全部心情</option>
+            <option value="轻松">轻松</option>
+            <option value="燃">燃</option>
+            <option value="治愈">治愈</option>
+            <option value="悬疑">悬疑</option>
+            <option value="史诗">史诗</option>
+          </select>
+          <select id="yearFilter" aria-label="作品年代筛选">
+            <option value="all">全部年代</option>
+            <option value="2020s">2020 年后</option>
+            <option value="2010s">2010 年代</option>
+            <option value="2000s">2000 年代</option>
+            <option value="1990s">1990 年代</option>
+            <option value="classic">1999 年前</option>
+          </select>
+          <select id="sourceFilter" aria-label="作品来源筛选">
+            <option value="all">全部来源</option>
+            <option value="manga">漫画改 / 漫画关联</option>
+            <option value="novel">轻小说改</option>
+            <option value="game">游戏改编</option>
+            <option value="original">原创企划</option>
+            <option value="donghua">国创动画</option>
+            <option value="music">偶像 / 音乐</option>
+          </select>
+          <select id="scoreFilter" aria-label="评分筛选">
+            <option value="all">全部评分</option>
+            <option value="9">9.0 分以上</option>
+            <option value="8.5">8.5 分以上</option>
+            <option value="8">8.0 分以上</option>
+          </select>
+          <select id="sortFilter" aria-label="排序方式">
+            <option value="score">评分优先</option>
+            <option value="newest">最新发布</option>
+            <option value="oldest">年代经典</option>
+            <option value="title">标题顺序</option>
+          </select>
+          <button class="search-submit" id="searchSubmit">
+            <i data-lucide="search-check"></i>
+            <span>搜索</span>
+          </button>
+        </section>
+
+        <section class="stats-grid" aria-label="ACG 概览">
+          <article class="interactive-stat" data-jump="animeGrid" tabindex="0">
+            <span id="matchCount">0</span>
+            <p>本地作品库</p>
+          </article>
+          <article class="interactive-stat" data-jump="savedList" tabindex="0">
+            <span id="savedCount">0</span>
+            <p>已收藏</p>
+          </article>
+          <article class="interactive-stat" data-jump="platformList" tabindex="0">
+            <span>9</span>
+            <p>观看入口</p>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <div>
+              <h2>作品速查</h2>
+              <p>按题材、类型、心情筛选，卡片内直接给出简介、标签和正版观看入口。</p>
+            </div>
+            <button class="text-button" id="resetFilters">重置</button>
+          </div>
+          <div class="anime-grid" id="animeGrid"></div>
+          <nav class="pagination" id="pagination" aria-label="作品分页"></nav>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <div>
+              <h2>本季新番</h2>
+              <p>实时拉取最近新出的动画，适合快速查看当前季度正在更新的作品。</p>
+            </div>
+            <button class="text-button" id="refreshSeasonal">刷新</button>
+          </div>
+          <div class="online-grid" id="seasonalGrid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">
+            <div>
+              <h2>联网检索</h2>
+              <p>输入关键词后可拉取公开动漫资料，并跳转到各平台搜索最新上架情况。</p>
+            </div>
+            <button class="text-button" id="onlineSearch">检索</button>
+          </div>
+          <div class="online-grid" id="onlineGrid"></div>
+        </section>
+      </section>
+
+      <aside class="rightbar">
+        <section class="panel compact">
+          <h2>观看入口</h2>
+          <div class="platform-list" id="platformList"></div>
+          <p class="note">实际片库会随地区、会员和版权变化，请以平台搜索结果为准。</p>
+        </section>
+
+        <section class="panel compact">
+          <h2>我的收藏</h2>
+          <div class="saved-list" id="savedList"></div>
+        </section>
+
+        <section class="panel compact">
+          <div class="section-title mini">
+            <div>
+              <h2>人气角色榜</h2>
+              <p>按角色类型和出处聚类快速看站内高热角色。</p>
+            </div>
+          </div>
+          <div class="ranking-tools">
+            <select id="characterGenderFilter" aria-label="角色性别筛选">
+              <option value="all">全部角色</option>
+              <option value="male">男性角色</option>
+              <option value="female">女性角色</option>
+            </select>
+            <select id="characterClusterFilter" aria-label="角色聚类筛选">
+              <option value="all">全部聚类</option>
+              <option value="成长主角">成长主角</option>
+              <option value="高智角色">高智角色</option>
+              <option value="治愈陪伴">治愈陪伴</option>
+              <option value="人气女主">人气女主</option>
+              <option value="反差喜剧">反差喜剧</option>
+              <option value="反英雄">反英雄</option>
+            </select>
+            <select id="characterSourceFilter" aria-label="角色出处筛选">
+              <option value="all">全部出处</option>
+              <option value="经典系列">经典系列</option>
+              <option value="热血战斗">热血战斗</option>
+              <option value="恋爱青春">恋爱青春</option>
+              <option value="科幻机甲">科幻机甲</option>
+              <option value="国创">国创</option>
+            </select>
+          </div>
+          <div class="ranking-list" id="characterRankingList"></div>
+        </section>
+
+        <section class="panel compact site-info">
+          <h2>资料站信息</h2>
+          <dl class="info-list">
+            <div>
+              <dt>收录规模</dt>
+              <dd id="datasetCount">3000+ 部</dd>
+            </div>
+            <div>
+              <dt>年份范围</dt>
+              <dd id="yearRange">自动统计</dd>
+            </div>
+            <div>
+              <dt>数据参考</dt>
+              <dd>Jikan / MyAnimeList Top Anime</dd>
+            </div>
+            <div>
+              <dt>观看说明</dt>
+              <dd>入口跳转到正版平台搜索页，片库以平台实时结果为准。</dd>
+            </div>
+            <div>
+              <dt>适合用途</dt>
+              <dd>补番规划、题材扫盲、角色资料与百科快速查询。</dd>
+            </div>
+          </dl>
+          <div class="catalog-block">
+            <div class="sidebar-head">
+              <h3>作品目录</h3>
+              <span class="sidebar-note">按来源和载体快速看数据库规模</span>
+            </div>
+            <div class="catalog-counts" id="catalogCounts"></div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <dialog id="detailDialog">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow" id="detailMeta"></p>
+          <h2 id="detailTitle"></h2>
+        </div>
+        <button class="icon-button" id="closeDialog" title="关闭" aria-label="关闭">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="detail-preview" id="detailPreview"></div>
+      <div class="detail-video" id="detailVideo"></div>
+      <p id="detailSummary"></p>
+      <div class="tag-row" id="detailTags"></div>
+      <div class="detail-info-grid">
+        <section>
+          <h3>主要人物</h3>
+          <div class="character-list" id="detailCharacters"></div>
+        </section>
+        <section>
+          <h3>资料入口</h3>
+          <div class="dialog-links" id="detailWikiLinks"></div>
+        </section>
+      </div>
+      <div class="dialog-links" id="detailLinks"></div>
+    </dialog>
+
+    <script src="anime-dataset.js?v=3000"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="app.js?v=20260526c"></script>
+  </body>
+</html>
