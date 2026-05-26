@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ACG アニメ速覧ガイド</title>
+    <title>acgnavi | 动漫追番资料站</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-    <link rel="stylesheet" href="styles.css?v=20260526c" />
+    <link rel="stylesheet" href="styles.css?v=20260527a" />
   </head>
   <body>
     <div class="anime-bg" aria-hidden="true">
@@ -16,8 +16,9 @@
     </div>
     <header class="app-header">
       <div>
-        <p class="eyebrow">Anime / Comic / Game Navigator</p>
-        <h1 lang="ja">ACG アニメ速覧ガイド</h1>
+        <p class="eyebrow">acgnavi anime / comic / game navigator</p>
+        <h1 lang="ja">acgnavi アニメ速覧ガイド</h1>
+        <p class="header-note">3000+ 作品库 / 国内平台入口 / 默认无需翻墙即可使用</p>
       </div>
       <div class="header-actions">
         <button class="icon-button" id="randomPick" title="随机推荐" aria-label="随机推荐">
@@ -120,6 +121,7 @@
             <option value="8">8.0 分以上</option>
           </select>
           <select id="sortFilter" aria-label="排序方式">
+            <option value="hot">热度优先</option>
             <option value="score">评分优先</option>
             <option value="newest">最新发布</option>
             <option value="oldest">年代经典</option>
@@ -150,7 +152,7 @@
           <div class="section-title">
             <div>
               <h2>作品速查</h2>
-              <p>按题材、类型、心情筛选，卡片内直接给出简介、标签和正版观看入口。</p>
+              <p>按题材、类型、年代和来源快速缩小范围，卡片只保留核心信息与观看入口。</p>
             </div>
             <button class="text-button" id="resetFilters">重置</button>
           </div>
@@ -161,10 +163,10 @@
         <section class="panel">
           <div class="section-title">
             <div>
-              <h2>本季新番</h2>
-              <p>实时拉取最近新出的动画，适合快速查看当前季度正在更新的作品。</p>
+              <h2>近期热门新番</h2>
+              <p>基于站内作品库整理近年新番与高热续作，不依赖外网接口也能直接浏览。</p>
             </div>
-            <button class="text-button" id="refreshSeasonal">刷新</button>
+            <button class="text-button" id="refreshSeasonal">换一批</button>
           </div>
           <div class="online-grid" id="seasonalGrid"></div>
         </section>
@@ -172,10 +174,10 @@
         <section class="panel">
           <div class="section-title">
             <div>
-              <h2>联网检索</h2>
-              <p>输入关键词后可拉取公开动漫资料，并跳转到各平台搜索最新上架情况。</p>
+              <h2>平台直达检索</h2>
+              <p>优先从站内作品库给出结果，并一键跳转到哔哩哔哩、腾讯视频、爱奇艺等平台搜索。</p>
             </div>
-            <button class="text-button" id="onlineSearch">检索</button>
+            <button class="text-button" id="onlineSearch">生成入口</button>
           </div>
           <div class="online-grid" id="onlineGrid"></div>
         </section>
@@ -240,15 +242,15 @@
             </div>
             <div>
               <dt>数据参考</dt>
-              <dd>Jikan / MyAnimeList Top Anime</dd>
+              <dd>站内整理库 + 公开资料归档，默认以本地数据为主。</dd>
             </div>
             <div>
               <dt>观看说明</dt>
-              <dd>入口跳转到正版平台搜索页，片库以平台实时结果为准。</dd>
+              <dd>优先提供国内可访问入口，片库以平台实时搜索结果为准。</dd>
             </div>
             <div>
               <dt>适合用途</dt>
-              <dd>补番规划、题材扫盲、角色资料与百科快速查询。</dd>
+              <dd>补番规划、系列顺序整理、角色资料速查与平台直达。</dd>
             </div>
           </dl>
           <div class="catalog-block">
@@ -291,6 +293,6 @@
 
     <script src="anime-dataset.js?v=3000"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="app.js?v=20260526c"></script>
+    <script src="app.js?v=20260527a"></script>
   </body>
 </html>

@@ -665,17 +665,121 @@ const baseAnimeData = [
   },
 ];
 
-const animeData = [
-  ...baseAnimeData,
-  ...(window.externalAnimeData || []).filter(
-    (externalItem) => !baseAnimeData.some((baseItem) => baseItem.id === externalItem.id),
-  ),
-];
+function deriveMoods(item) {
+  const text = [item.summary, ...(item.genres || []), item.type].filter(Boolean).join(" ").toLowerCase();
+  if (/(healing|iyashikei|治愈|日常|family|slice)/.test(text)) return ["治愈"];
+  if (/(mystery|thriller|psychological|悬疑|推理|犯罪)/.test(text)) return ["悬疑"];
+  if (/(epic|historical|war|史诗|战争|群像)/.test(text)) return ["史诗"];
+  if (/(comedy|music|school|romance|轻松|恋爱|音乐|校园)/.test(text)) return ["轻松"];
+  return ["燃"];
+}
+
+function normalizeAnimeItem(item, index = 0) {
+  const normalizedTitle = item.title || item.englishTitle || `未命名作品 ${index + 1}`;
+  const normalizedGenres = Array.isArray(item.genres) && item.genres.length ? item.genres : ["动画"];
+  const normalizedMoods = Array.isArray(item.moods) && item.moods.length ? item.moods : deriveMoods({ ...item, genres: normalizedGenres });
+  const normalizedSummary =
+    item.summary ||
+    item.synopsis ||
+    `${normalizedTitle} 的基础资料已收录到 acgnavi，可直接查看题材标签、系列顺序和平台入口。`;
+  const numericScore = Number(item.score);
+  const numericYear = Number(item.year);
+
+  return {
+    ...item,
+    id: item.id || `anime-${index + 1}`,
+    title: normalizedTitle,
+    type: item.type || "TV",
+    moods: normalizedMoods,
+    genres: normalizedGenres,
+    score: Number.isFinite(numericScore) && numericScore > 0 ? numericScore.toFixed(1) : "7.8",
+    year: Number.isFinite(numericYear) && numericYear > 1900 ? String(numericYear) : "年份未知",
+    summary: normalizedSummary,
+    cover: item.cover || "",
+    sourceIndex: index,
+    altTitles: [item.title, item.englishTitle].filter(Boolean),
+  };
+}
+
+function containsCjk(text = "") {
+  return /[\u3040-\u30ff\u3400-\u9fff]/.test(text);
+}
+
+function containsChinese(text = "") {
+  return /[\u4e00-\u9fff]/.test(text);
+}
+
+function preferDisplayTitle(candidates) {
+  const clean = [...new Set(candidates.filter(Boolean))];
+  const chinese = clean.find((title) => containsChinese(title));
+  if (chinese) return chinese;
+  const cjk = clean.find((title) => containsCjk(title));
+  if (cjk) return cjk;
+  return clean[0] || "未命名作品";
+}
+
+function mergeAnimeItem(target, incoming) {
+  const allTitles = [...new Set([...(target.altTitles || []), ...(incoming.altTitles || []), target.title, incoming.title].filter(Boolean))];
+  const allGenres = [...new Set([...(target.genres || []), ...(incoming.genres || [])])];
+  const allMoods = [...new Set([...(target.moods || []), ...(incoming.moods || [])])];
+  const targetSummary = target.summary || "";
+  const incomingSummary = incoming.summary || "";
+  const preferredSummary =
+    containsChinese(targetSummary) && targetSummary.length >= incomingSummary.length
+      ? targetSummary
+      : containsChinese(incomingSummary) || incomingSummary.length > targetSummary.length
+        ? incomingSummary
+        : targetSummary;
+
+  const targetSource = Number.isFinite(target.sourceIndex) ? target.sourceIndex : 999999;
+  const incomingSource = Number.isFinite(incoming.sourceIndex) ? incoming.sourceIndex : 999999;
+
+  return {
+    ...target,
+    id: target.id || incoming.id,
+    malId: target.malId || incoming.malId,
+    title: preferDisplayTitle(allTitles),
+    englishTitle: target.englishTitle || incoming.englishTitle || "",
+    altTitles: allTitles,
+    type: target.type || incoming.type || "TV",
+    moods: allMoods.length ? allMoods : ["燃"],
+    genres: allGenres.length ? allGenres : ["动画"],
+    score: getNumericScore(target) >= getNumericScore(incoming) ? target.score : incoming.score,
+    year: getNumericYear(target) >= getNumericYear(incoming) ? target.year : incoming.year,
+    summary: preferredSummary,
+    cover: !isMissingCover(target.cover) ? target.cover : incoming.cover,
+    sourceIndex: Math.min(targetSource, incomingSource),
+    popularityRank: Math.min(target.popularityRank || 999999, incoming.popularityRank || 999999),
+    members: Math.max(target.members || 0, incoming.members || 0),
+    favorites: Math.max(target.favorites || 0, incoming.favorites || 0),
+    scoredBy: Math.max(target.scoredBy || 0, incoming.scoredBy || 0),
+  };
+}
+
+function buildAnimeData() {
+  const combined = [
+    ...baseAnimeData,
+    ...(window.externalAnimeData || []).filter(
+      (externalItem) => !baseAnimeData.some((baseItem) => baseItem.id === externalItem.id),
+    ),
+  ].map((item, index) => normalizeAnimeItem(item, index));
+
+  const merged = new Map();
+  for (const item of combined) {
+    const mergeKey = item.malId ? `mal-${item.malId}` : `title-${(item.englishTitle || item.title).toLowerCase()}`;
+    const existing = merged.get(mergeKey);
+    merged.set(mergeKey, existing ? mergeAnimeItem(existing, item) : item);
+  }
+  return [...merged.values()];
+}
+
+const animeData = buildAnimeData();
 
 function collectAnimeText(item) {
   return [
     item.title,
     item.englishTitle,
+    ...(item.altTitles || []),
     item.type,
     item.year,
     item.summary,
@@ -865,20 +969,33 @@ const routes = {
 };
 
 const platforms = [
-  ["哔哩哔哩", "国内动画番剧、国创和弹幕生态", "https://search.bilibili.com/all?keyword="],
-  ["腾讯视频", "国产与引进动画片库", "https://v.qq.com/x/search/?q="],
-  ["爱奇艺", "番剧、电影和国漫入口", "https://so.iqiyi.com/so/q_"],
-  ["优酷", "动画、剧场版和国漫入口", "https://so.youku.com/search_video/q_"],
-  ["Netflix", "全球片库和独占动画", "https://www.netflix.com/search?q="],
-  ["Crunchyroll", "海外正版日漫平台", "https://www.crunchyroll.com/search?q="],
-  ["Disney+", "部分动画电影与独占番剧", "https://www.disneyplus.com/search/"],
-  ["YouTube", "官方频道、PV、免费播放集", "https://www.youtube.com/results?search_query="],
+  ["哔哩哔哩", "国内番剧、国创和弹幕生态", "https://search.bilibili.com/all?keyword="],
+  ["腾讯视频", "正版番剧和电影搜索入口", "https://v.qq.com/x/search/?q="],
+  ["爱奇艺", "动画、剧场版和国漫入口", "https://so.iqiyi.com/so/q_"],
+  ["优酷", "动画和电影片库入口", "https://so.youku.com/search_video/q_"],
+  ["芒果TV", "动画与综艺联动入口", "https://so.mgtv.com/so/k-"],
+  ["咪咕视频", "动画电影与正版内容入口", "https://www.miguvideo.com/mgs/website/prd/search.html?text="],
   ["Bangumi", "中文条目、评分和讨论", "https://bgm.tv/subject_search/"],
+  ["豆瓣", "观众口碑和条目信息", "https://www.douban.com/search?q="],
+  ["萌娘百科", "角色与设定资料入口", "https://mzh.moegirl.org.cn/index.php?search="],
 ];
 
 const savedKey = "acg-saved-v1";
 const fallbackCover =
-  "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?auto=format&fit=crop&w=900&q=80";
+  "data:image/svg+xml;charset=UTF-8," +
+  encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#edf4ff"/>
+          <stop offset="100%" stop-color="#d8e8f6"/>
+        </linearGradient>
+      </defs>
+      <rect width="900" height="540" rx="28" fill="url(#g)"/>
+      <text x="72" y="240" fill="#112033" font-size="44" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">acgnavi</text>
+      <text x="72" y="308" fill="#607086" font-size="28" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">动漫资料站海报占位</text>
+    </svg>
+  `);
 const grid = document.querySelector("#animeGrid");
 const pagination = document.querySelector("#pagination");
 const onlineGrid = document.querySelector("#onlineGrid");
@@ -902,11 +1019,9 @@ let saved = JSON.parse(localStorage.getItem(savedKey) || "[]");
 let activeDetailId = "";
 let activeCategoryView = "theme";
 let activeCategoryKey = "";
-const detailCache = new Map();
-const characterCache = new Map();
-const trailerCache = new Map();
 let currentPage = 1;
 const pageSize = 18;
+let seasonalCursor = 0;
 
 const localDetailData = {
   frieren: {
@@ -1133,19 +1248,19 @@ function searchUrl(platform, title) {
 }
 
 function wikiSearchUrl(query) {
-  return `https://zh.wikipedia.org/w/index.php?search=${encodeURIComponent(query)}`;
+  return `https://mzh.moegirl.org.cn/index.php?search=${encodeURIComponent(query)}`;
 }
 
-function youtubeSearchUrl(query) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+function baikeSearchUrl(query) {
+  return `https://baike.baidu.com/search?word=${encodeURIComponent(query)}`;
 }
 
-function filmarksSearchUrl(query) {
-  return `https://filmarks.com/search/animes?q=${encodeURIComponent(query)}`;
+function bilibiliSearchUrl(query) {
+  return `https://search.bilibili.com/all?keyword=${encodeURIComponent(query)}`;
 }
 
-function animeHackSearchUrl(query) {
-  return `https://anime.eiga.com/search/${encodeURIComponent(query)}/`;
+function bangumiSearchUrl(query) {
+  return `https://bgm.tv/subject_search/${encodeURIComponent(query)}`;
 }
 
 function getMalId(item) {
@@ -1222,6 +1337,9 @@ function matchesSourceFilter(item, sourceValue) {
 
 function sortAnimeList(items, sortValue) {
   const sorted = [...items];
+  if (sortValue === "hot") {
+    return sorted.sort((a, b) => getHeatScore(b) - getHeatScore(a) || getNumericScore(b) - getNumericScore(a));
+  }
   if (sortValue === "newest") {
     return sorted.sort((a, b) => getNumericYear(b) - getNumericYear(a) || getNumericScore(b) - getNumericScore(a));
   }
@@ -1232,6 +1350,28 @@ function sortAnimeList(items, sortValue) {
     return sorted.sort((a, b) => a.title.localeCompare(b.title, "zh-Hans-CN"));
   }
   return sorted.sort((a, b) => getNumericScore(b) - getNumericScore(a) || getNumericYear(b) - getNumericYear(a));
+}
+
+function getHeatScore(item) {
+  const titleKey = [item.title, item.englishTitle, ...(item.altTitles || [])].filter(Boolean).join(" ").toLowerCase();
+  const characterBoost = characterRankings.filter((entry) => {
+    const anime = animeData.find((candidate) => candidate.id === entry.animeId);
+    if (!anime) return false;
+    const candidateTitles = [anime.title, anime.englishTitle, ...(anime.altTitles || [])]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return candidateTitles === titleKey || anime.malId === item.malId || anime.id === item.id;
+  }).length * 18;
+  const sourceBoost = item.sourceIndex ? Math.max(0, 3200 - item.sourceIndex) / 28 : 0;
+  const scoreBoost = getNumericScore(item) * 6;
+  const yearBoost = Math.max(0, getNumericYear(item) - 2000) * 0.4;
+  const audienceBoost =
+    (item.members || 0) / 50000 +
+    (item.favorites || 0) / 5000 +
+    (item.scoredBy || 0) / 80000;
+
+  return characterBoost + sourceBoost + scoreBoost + yearBoost + audienceBoost;
 }
 
 function getFilterState(options = {}) {
@@ -1397,70 +1537,17 @@ function renderAnime() {
   refreshIcons();
 }
 
-function renderTrailerFrame(target, trailer, title) {
-  const embedUrl = trailer?.embedUrl || "";
-  const watchUrl = trailer?.url || youtubeSearchUrl(`${title} anime trailer`);
-
-  target.innerHTML = embedUrl
-    ? `
-      <div class="video-frame">
-        <iframe
-          src="${embedUrl}"
-          title="${title} 预告片"
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen
-        ></iframe>
-      </div>
-      <a class="video-link" href="${watchUrl}" target="_blank" rel="noreferrer">打开视频页面</a>
-    `
-    : `
-      <div class="video-empty with-poster">
-        <img src="${fallbackCover}" alt="${title} 视频预览占位图" loading="lazy" />
-        <div>
-          <strong>暂无官方预告片</strong>
-          <a href="${watchUrl}" target="_blank" rel="noreferrer">去 YouTube 搜索预告片</a>
-        </div>
-      </div>
-    `;
-}
-
-async function getTrailer(item) {
-  if (trailerCache.has(item.id)) return trailerCache.get(item.id);
-
-  const malId = getMalId(item);
-  if (!malId) {
-    const fallbackTrailer = { embedUrl: "", url: youtubeSearchUrl(`${item.title} anime trailer`) };
-    trailerCache.set(item.id, fallbackTrailer);
-    return fallbackTrailer;
-  }
-
-  const response = await fetch(`https://api.jikan.moe/v4/anime/${malId}`);
-  if (!response.ok) throw new Error("trailer");
-  const payload = await response.json();
-  const trailer = payload.data?.trailer || {};
-  const detail = {
-    embedUrl: trailer.embed_url || "",
-    url: trailer.url || youtubeSearchUrl(`${item.englishTitle || item.title} anime trailer`),
-  };
-  trailerCache.set(item.id, detail);
-  return detail;
-}
-
-async function loadTrailerForDetail(item) {
+function loadTrailerForDetail(item) {
   const target = document.querySelector("#detailVideo");
-  target.innerHTML = `<div class="video-empty"><span>正在加载预告片...</span></div>`;
-
-  try {
-    const trailer = await getTrailer(item);
-    if (activeDetailId === item.id) {
-      renderTrailerFrame(target, trailer, item.title);
-    }
-  } catch (error) {
-    if (activeDetailId === item.id) {
-      renderTrailerFrame(target, null, item.title);
-    }
-  }
+  target.innerHTML = `
+    <div class="video-empty with-poster">
+      <img src="${resolveCover(item)}" alt="${item.title} 预告片入口" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+      <div>
+        <strong>预告片与片段入口</strong>
+        <a href="${bilibiliSearchUrl(`${item.title} PV 预告片`)}" target="_blank" rel="noreferrer">去哔哩哔哩搜索 PV / 切片</a>
+      </div>
+    </div>
+  `;
 }
 
 function getPageNumbers(totalPages) {
@@ -1605,8 +1692,8 @@ function renderCharacterRankings() {
                 <strong>${item.name}</strong>
                 <span>${anime?.title || "未标注作品"} · ${item.cluster}</span>
                 <span class="ranking-links">
-                  <a href="${filmarksSearchUrl(title)}" target="_blank" rel="noreferrer">Filmarks 评价</a>
-                  <a href="${animeHackSearchUrl(title)}" target="_blank" rel="noreferrer">Anime Hack 口碑</a>
+                  <a href="${bangumiSearchUrl(title)}" target="_blank" rel="noreferrer">Bangumi 条目</a>
+                  <a href="${baikeSearchUrl(title)}" target="_blank" rel="noreferrer">百科资料</a>
                 </span>
               </span>
               <span class="ranking-score">${item.score}</span>
@@ -1654,68 +1741,35 @@ function renderCharacters(characters, title) {
 function renderWikiLinks(item) {
   const queryTitle = item.englishTitle || item.title;
   document.querySelector("#detailWikiLinks").innerHTML = `
-    <a href="${wikiSearchUrl(`${item.title} 动画`)}" target="_blank" rel="noreferrer">中文百科</a>
-    <a href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(`${queryTitle} anime`)}" target="_blank" rel="noreferrer">英文百科</a>
-    <a href="https://www.google.com/search?q=${encodeURIComponent(`${queryTitle} anime characters`) }" target="_blank" rel="noreferrer">人物检索</a>
+    <a href="${wikiSearchUrl(`${item.title} 动画`)}" target="_blank" rel="noreferrer">萌娘百科</a>
+    <a href="${bangumiSearchUrl(queryTitle)}" target="_blank" rel="noreferrer">Bangumi 条目</a>
+    <a href="${baikeSearchUrl(`${queryTitle} 角色`)}" target="_blank" rel="noreferrer">人物检索</a>
   `;
 }
 
-async function loadDetailExtras(item) {
-  const malId = getMalId(item);
+function loadDetailExtras(item) {
   const fallbackImages = [resolveCover(item), fallbackCover];
   const fallbackCharacters = (localDetailData[item.id]?.characters || []).map((name) => ({
     name,
     role: "主要角色",
     image: "",
   }));
-
-  if (!malId) {
-    renderPreview(fallbackImages, item.title);
-    renderCharacters(fallbackCharacters, item.title);
-    return;
-  }
-
-  if (detailCache.has(malId)) {
-    const cached = detailCache.get(malId);
-    renderPreview(cached.images, item.title);
-    renderCharacters(cached.characters, item.title);
-    return;
-  }
-
+  renderPreview(fallbackImages, item.title);
   renderCharacters(fallbackCharacters, item.title);
+}
 
-  try {
-    const [picturesResponse, charactersResponse] = await Promise.all([
-      fetch(`https://api.jikan.moe/v4/anime/${malId}/pictures`),
-      fetch(`https://api.jikan.moe/v4/anime/${malId}/characters`),
-    ]);
-
-    const picturesPayload = picturesResponse.ok ? await picturesResponse.json() : { data: [] };
-    const charactersPayload = charactersResponse.ok ? await charactersResponse.json() : { data: [] };
-    const images = [
-      resolveCover(item),
-      ...(picturesPayload.data || []).map(
-        (picture) => picture.jpg?.large_image_url || picture.jpg?.image_url,
-      ),
-    ];
-    const characters = (charactersPayload.data || []).slice(0, 10).map((entry) => ({
-      name: entry.character?.name || "未知角色",
-      role: entry.role || "角色",
-      image: entry.character?.images?.jpg?.image_url || "",
-    }));
-
-    const detail = { images, characters };
-    detailCache.set(malId, detail);
-    if (activeDetailId === item.id) {
-      renderPreview(detail.images, item.title);
-      renderCharacters(detail.characters, item.title);
+function resetDetailMedia() {
+  const video = document.querySelector("#detailVideo");
+  if (!video) return;
+  video.querySelectorAll("iframe, video, audio").forEach((media) => {
+    if (media.tagName === "IFRAME") {
+      media.src = "about:blank";
+    } else if (typeof media.pause === "function") {
+      media.pause();
+      media.currentTime = 0;
     }
-  } catch (error) {
-    if (activeDetailId === item.id) {
-      renderPreview(fallbackImages, item.title);
-      renderCharacters(fallbackCharacters, item.title);
-    }
-  }
+  });
+  video.innerHTML = "";
 }
 
 function openDetail(id) {
@@ -1727,7 +1781,7 @@ function openDetail(id) {
   document.querySelector("#detailTitle").textContent = item.title;
   document.querySelector("#detailSummary").textContent = item.summary;
   renderPreview([resolveCover(item)], item.title);
-  document.querySelector("#detailVideo").innerHTML = "";
+  resetDetailMedia();
   renderCharacters([], item.title);
   renderWikiLinks(item);
   document.querySelector("#detailTags").innerHTML = item.genres
@@ -1777,106 +1831,111 @@ function performSearch({ online = false } = {}) {
   }
 }
 
-async function refreshSeasonalAnime() {
+function buildSeasonalPool() {
+  return sortAnimeList(
+    animeData.filter((item) => getNumericYear(item) >= 2022),
+    "newest",
+  ).slice(0, 48);
+}
+
+function refreshSeasonalAnime() {
   if (!seasonalGrid) return;
-  seasonalGrid.innerHTML = `<p class="saved-empty">正在更新本季新番...</p>`;
-
-  try {
-    const response = await fetch("https://api.jikan.moe/v4/seasons/now?limit=12");
-    if (!response.ok) throw new Error("seasonal");
-    const payload = await response.json();
-    const results = payload.data || [];
-
-    seasonalGrid.innerHTML = results.length
-      ? results
-          .map((item, index) => {
-            const title = item.title_japanese || item.title;
-            const cover = item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || "";
-            const score = item.score ? item.score.toFixed(1) : "N/A";
-            const genres = (item.genres || []).slice(0, 3).map((genre) => genre.name);
-            return `
-          <article class="anime-card" style="--card-index: ${index}">
-            <div class="poster">
-              <img src="${cover || fallbackCover}" alt="${title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
-              <span class="score">${score}</span>
-            </div>
-            <div class="card-body">
-              <div>
-                <h3>${title}</h3>
-                <div class="meta-row">
-                  <span class="pill rose">${item.type || "Anime"}</span>
-                  <span class="pill teal">${item.year || "新番"}</span>
-                  <span class="pill gold">${item.status || "更新中"}</span>
-                </div>
-              </div>
-              <p>${item.synopsis ? item.synopsis.slice(0, 130) : "本季新番条目，打开资料页可继续查看详情。"}</p>
-              <div class="tag-row">${genres.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
-              <div class="card-actions">
-                <a class="primary-link" href="${item.url}" target="_blank" rel="noreferrer">资料页</a>
-                <a class="icon-button" href="${searchUrl(platforms[0], title)}" target="_blank" rel="noreferrer" title="平台搜索" aria-label="平台搜索 ${title}">
-                  <i data-lucide="external-link"></i>
-                </a>
-              </div>
-            </div>
-          </article>
-        `;
-          })
-          .join("")
-      : `<p class="saved-empty">暂时没有获取到本季新番，可以稍后刷新。</p>`;
-  } catch (error) {
-    seasonalGrid.innerHTML = `<p class="saved-empty">本季新番实时更新暂时不可用，请稍后再试。</p>`;
+  const pool = buildSeasonalPool();
+  if (!pool.length) {
+    seasonalGrid.innerHTML = `<p class="saved-empty">当前还没有可展示的新番条目。</p>`;
+    return;
   }
+
+  const batchSize = 6;
+  const results = pool.slice(seasonalCursor, seasonalCursor + batchSize);
+  seasonalCursor = (seasonalCursor + batchSize) % pool.length;
+
+  seasonalGrid.innerHTML = results
+    .map(
+      (item, index) => `
+        <article class="anime-card compact-card" style="--card-index: ${index}">
+          <div class="poster">
+            <img src="${resolveCover(item)}" alt="${item.title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+            <span class="score">${item.score}</span>
+          </div>
+          <div class="card-body">
+            <div>
+              <h3>${item.title}</h3>
+              <div class="meta-row">
+                <span class="pill rose">${item.type}</span>
+                <span class="pill teal">${item.year}</span>
+                <span class="pill gold">${item.moods[0]}</span>
+              </div>
+            </div>
+            <p>${item.summary.slice(0, 64)}${item.summary.length > 64 ? "..." : ""}</p>
+            <div class="card-actions">
+              <button class="primary-link" data-detail="${item.id}">查看详情</button>
+              <a class="icon-button" href="${searchUrl(platforms[0], item.title)}" target="_blank" rel="noreferrer" title="平台搜索" aria-label="平台搜索 ${item.title}">
+                <i data-lucide="external-link"></i>
+              </a>
+            </div>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
   refreshIcons();
 }
 
-async function runOnlineSearch() {
+function runOnlineSearch() {
   const query = getSearchTitle();
-  onlineGrid.innerHTML = `<p class="saved-empty">正在检索 ${query} 的公开资料...</p>`;
-  const endpoint = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=6`;
+  const results = sortAnimeList(
+    animeData.filter((item) => collectAnimeText(item).includes(query.toLowerCase())),
+    "score",
+  ).slice(0, 6);
 
-  try {
-    const response = await fetch(endpoint);
-    if (!response.ok) throw new Error("network");
-    const payload = await response.json();
-    const results = payload.data || [];
-
-    onlineGrid.innerHTML = results.length
-      ? results
-          .map((item) => {
-            const title = item.title_japanese || item.title;
-            const cover = item.images?.jpg?.large_image_url || item.images?.jpg?.image_url || "";
-            const score = item.score ? item.score.toFixed(1) : "N/A";
-            const summary = item.synopsis ? item.synopsis.slice(0, 120) : "暂无简介，可打开资料页继续查看。";
-            return `
-          <article class="anime-card">
-            <div class="poster">
-              <img src="${cover || fallbackCover}" alt="${title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
-              <span class="score">${score}</span>
-            </div>
-            <div class="card-body">
-              <div>
-                <h3>${title}</h3>
-                <div class="meta-row">
-                  <span class="pill rose">${item.type || "Anime"}</span>
-                  <span class="pill teal">${item.year || "年份未知"}</span>
+  onlineGrid.innerHTML = results.length
+    ? results
+        .map(
+          (item) => `
+            <article class="anime-card compact-card">
+              <div class="poster">
+                <img src="${resolveCover(item)}" alt="${item.title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+                <span class="score">${item.score}</span>
+              </div>
+              <div class="card-body">
+                <div>
+                  <h3>${item.title}</h3>
+                  <div class="meta-row">
+                    <span class="pill rose">${item.type}</span>
+                    <span class="pill teal">${item.year}</span>
+                  </div>
+                </div>
+                <p>${item.summary.slice(0, 72)}${item.summary.length > 72 ? "..." : ""}</p>
+                <div class="tag-row">${item.genres.slice(0, 2).map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+                <div class="platform-chip-row">
+                  ${platforms
+                    .slice(0, 4)
+                    .map(
+                      (platform) =>
+                        `<a class="platform-chip" href="${searchUrl(platform, item.title)}" target="_blank" rel="noreferrer">${platform[0]}</a>`,
+                    )
+                    .join("")}
                 </div>
               </div>
-              <p>${summary}</p>
-              <div class="card-actions">
-                <a class="primary-link" href="${item.url}" target="_blank" rel="noreferrer">资料页</a>
-                <a class="icon-button" href="${searchUrl(platforms[0], title)}" target="_blank" rel="noreferrer" title="平台搜索" aria-label="平台搜索 ${title}">
-                  <i data-lucide="external-link"></i>
-                </a>
-              </div>
-            </div>
-          </article>
-        `;
-          })
-          .join("")
-      : `<p class="saved-empty">没有检索到结果，试试输入日文名、英文名或更短关键词。</p>`;
-  } catch (error) {
-    onlineGrid.innerHTML = `<p class="saved-empty">联网检索暂时不可用。你仍可使用右侧平台入口直接搜索 ${query}。</p>`;
-  }
+            </article>
+          `,
+        )
+        .join("")
+    : `
+      <div class="saved-empty">
+        站内没有直接匹配到“${query}”，你仍然可以使用右侧入口或下面这些平台搜索。
+        <div class="platform-chip-row fallback-search-links">
+          ${platforms
+            .slice(0, 6)
+            .map(
+              (platform) =>
+                `<a class="platform-chip" href="${searchUrl(platform, query)}" target="_blank" rel="noreferrer">${platform[0]}</a>`,
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
   refreshIcons();
 }
 
@@ -1984,7 +2043,7 @@ document.querySelector("#resetFilters").addEventListener("click", () => {
   yearFilter.value = "all";
   sourceFilter.value = "all";
   scoreFilter.value = "all";
-  sortFilter.value = "score";
+  sortFilter.value = "hot";
   resetPage();
   activeCategoryKey = "";
   activeCategoryView = "theme";
@@ -2011,8 +2070,11 @@ document.querySelector("#clearSaved").addEventListener("click", () => {
 document.querySelector("#onlineSearch").addEventListener("click", runOnlineSearch);
 document.querySelector("#refreshSeasonal").addEventListener("click", refreshSeasonalAnime);
 document.querySelector("#closeDialog").addEventListener("click", () => {
+  resetDetailMedia();
   document.querySelector("#detailDialog").close();
 });
+document.querySelector("#detailDialog").addEventListener("close", resetDetailMedia);
+document.querySelector("#detailDialog").addEventListener("cancel", resetDetailMedia);
 
 document.addEventListener("keydown", (event) => {
   const statCard = event.target.closest?.("[data-jump]");

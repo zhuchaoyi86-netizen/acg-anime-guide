@@ -140,8 +140,8 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  min-height: 220px;
-  padding: 34px clamp(16px, 4vw, 48px) 30px;
+  min-height: 168px;
+  padding: 26px clamp(16px, 4vw, 48px) 20px;
   overflow: hidden;
   border-bottom: 1px solid rgba(217, 224, 232, 0.72);
   background:
@@ -187,6 +187,13 @@ button {
   text-transform: uppercase;
 }
 
+.header-note {
+  margin: 10px 0 0;
+  color: #5f6d7c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .header-actions,
 .dialog-head,
 .section-title,
@@ -209,8 +216,8 @@ button {
   z-index: 1;
   display: grid;
   grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(230px, 280px);
-  gap: 18px;
-  padding: 0 clamp(16px, 3vw, 32px) 24px;
+  gap: 14px;
+  padding: 0 clamp(16px, 3vw, 32px) 18px;
 }
 
 .sidebar,
@@ -224,7 +231,7 @@ button {
 
 .content {
   display: grid;
-  gap: 18px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -252,11 +259,11 @@ button {
 }
 
 .panel {
-  padding: 20px;
+  padding: 16px;
 }
 
 .panel.compact {
-  padding: 16px;
+  padding: 14px;
 }
 
 .sidebar .panel:first-child {
@@ -316,7 +323,7 @@ button {
 .section-title {
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .section-title p,
@@ -328,10 +335,10 @@ button {
 }
 
 .search-band {
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   align-items: stretch;
-  padding: 12px;
+  padding: 10px;
 }
 
 .search-box {
@@ -365,7 +372,7 @@ button {
   font-weight: 700;
   min-width: 0;
   width: 100%;
-  height: 42px;
+  height: 40px;
   border: 0;
   outline: none;
   background: transparent;
@@ -393,7 +400,7 @@ select {
     "Songti SC", "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif CJK SC",
     "Source Han Serif SC", serif;
   font-weight: 800;
-  height: 44px;
+  height: 40px;
   min-width: 132px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -420,9 +427,9 @@ select {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-width: 96px;
-  height: 44px;
-  padding: 0 16px;
+  min-width: 88px;
+  height: 40px;
+  padding: 0 14px;
   border-color: var(--ink);
   background: var(--ink);
   color: #fff;
@@ -487,11 +494,11 @@ select {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .stats-grid article {
-  padding: 16px;
+  padding: 14px;
   position: relative;
   overflow: hidden;
 }
@@ -518,7 +525,7 @@ select {
 .stats-grid span {
   display: block;
   color: var(--rose);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 900;
 }
 
@@ -534,7 +541,7 @@ select {
 .route-list {
   display: grid;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .category-item,
@@ -546,8 +553,8 @@ select {
   gap: 8px;
   align-items: center;
   width: 100%;
-  min-height: 44px;
-  padding: 10px;
+  min-height: 40px;
+  padding: 9px;
   text-align: left;
 }
 
@@ -562,7 +569,7 @@ select {
 .category-item {
   position: relative;
   overflow: hidden;
-  min-height: 64px;
+  min-height: 58px;
   border-color: rgba(217, 224, 232, 0.92);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
   transition:
@@ -679,8 +686,8 @@ select {
 }
 
 .route-note {
-  margin-top: 12px;
-  padding: 12px 14px;
+  margin-top: 10px;
+  padding: 10px 12px;
   border: 1px solid rgba(217, 224, 232, 0.92);
   border-radius: 8px;
   background: rgba(246, 248, 251, 0.92);
@@ -690,7 +697,7 @@ select {
 }
 
 .watch-route {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   padding: 0;
   list-style: none;
   display: grid;
@@ -702,7 +709,7 @@ select {
   grid-template-columns: 28px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid rgba(217, 224, 232, 0.92);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
@@ -739,15 +746,15 @@ select {
 .anime-grid,
 .online-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
 }
 
 .anime-card {
   display: grid;
   grid-template-rows: auto 1fr;
   overflow: hidden;
-  min-height: 292px;
+  min-height: 272px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
@@ -772,7 +779,7 @@ select {
 
 .poster {
   position: relative;
-  min-height: 132px;
+  min-height: 120px;
   background: #dbe6ef;
   overflow: hidden;
 }
@@ -780,7 +787,7 @@ select {
 .poster img {
   display: block;
   width: 100%;
-  height: 152px;
+  height: 140px;
   object-fit: cover;
 }
 
@@ -799,8 +806,8 @@ select {
 
 .card-body {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 11px;
 }
 
 .card-head {
@@ -810,20 +817,20 @@ select {
 
 .card-body h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   letter-spacing: 0;
 }
 
 .card-body p {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .synopsis-block {
   display: grid;
-  min-height: 42px;
+  min-height: 38px;
 }
 
 .meta-row {
@@ -928,6 +935,18 @@ select {
   margin-top: auto;
 }
 
+.compact-card {
+  min-height: 254px;
+}
+
+.compact-card .poster img {
+  height: 128px;
+}
+
+.compact-card .synopsis-block {
+  min-height: 0;
+}
+
 .primary-link {
   display: inline-flex;
   align-items: center;
@@ -950,8 +969,8 @@ select {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 14px;
-  margin-top: 18px;
-  padding-top: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid rgba(217, 224, 232, 0.92);
 }
 
@@ -1136,6 +1155,35 @@ select {
 .saved-empty {
   color: var(--muted);
   font-size: 13px;
+  line-height: 1.7;
+}
+
+.platform-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.platform-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(217, 224, 232, 0.92);
+  border-radius: 999px;
+  color: #243447;
+  background: rgba(248, 250, 252, 0.96);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.platform-chip:hover {
+  border-color: rgba(19, 124, 128, 0.45);
+  color: var(--teal);
+}
+
+.fallback-search-links {
+  margin-top: 10px;
 }
 
 .site-info {
@@ -1401,6 +1449,10 @@ svg {
 }
 
 @media (max-width: 760px) {
+  body {
+    background: #e8eef5;
+  }
+
   .app-header,
   .section-title,
   .search-band {
@@ -1408,25 +1460,127 @@ svg {
     flex-direction: column;
   }
 
+  .app-header {
+    min-height: auto;
+    padding: 18px 14px 16px;
+    gap: 14px;
+  }
+
+  .app-header h1 {
+    font-size: 26px;
+    white-space: normal;
+    line-height: 1.12;
+  }
+
+  .eyebrow,
+  .header-note {
+    font-size: 11px;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
   .app-shell,
   .rightbar {
     grid-template-columns: 1fr;
+  }
+
+  .app-shell {
+    gap: 12px;
+    padding: 0 12px 16px;
   }
 
   .sidebar {
     position: static;
   }
 
+  .panel,
+  .panel.compact {
+    padding: 12px;
+  }
+
+  .category-modes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .category-item {
+    min-height: 54px;
+  }
+
+  .route-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .watch-route li {
+    grid-template-columns: 24px minmax(0, 1fr);
+    padding: 9px;
+  }
+
+  .route-index {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
+  .stats-grid article {
+    padding: 12px;
+  }
+
+  .search-box {
+    min-width: 0;
+  }
+
   select {
     width: 100%;
+    min-width: 0;
   }
 
   .search-submit {
     width: 100%;
+  }
+
+  .anime-grid,
+  .online-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .anime-card,
+  .compact-card {
+    min-height: auto;
+  }
+
+  .poster img,
+  .compact-card .poster img {
+    height: 148px;
+  }
+
+  .pagination {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .pagination-nav {
+    flex-wrap: wrap;
+  }
+
+  .rightbar {
+    gap: 12px;
+  }
+
+  .platform-list,
+  .saved-list,
+  .ranking-list {
+    gap: 6px;
+  }
+
+  .ranking-item {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    padding: 8px;
   }
 
   .detail-preview,

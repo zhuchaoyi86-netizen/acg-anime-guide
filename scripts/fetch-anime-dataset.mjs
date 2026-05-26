@@ -114,6 +114,10 @@ function normalizeEntry(entry) {
     year: String(entry.year || entry.aired?.prop?.from?.year || "未知"),
     cover: entry.images?.jpg?.large_image_url || entry.images?.jpg?.image_url || "",
     summary: cleanSummary(entry, genres),
+    popularityRank: entry.popularity || null,
+    members: entry.members || 0,
+    favorites: entry.favorites || 0,
+    scoredBy: entry.scored_by || 0,
   };
 }
 

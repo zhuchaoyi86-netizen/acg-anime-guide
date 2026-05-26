@@ -1,122 +1,124 @@
-# acgnavi.com / ACG アニメ速覧ガイド
+# acgnavi 动漫追番资料站
 
-这是一个面向动漫、漫画、游戏爱好者的 ACG 资料站项目。
+`acgnavi` 是一个面向普通读者的动漫资料站。
 
-它现在已经整理成适合公开发布的前端网站，主要能力包括：
+它不是开发者工具站，也不是只给熟悉 GitHub 的人用的项目页。你可以把它理解成一个可以直接打开、直接搜番、直接看追番顺序、直接跳转平台的 ACG 导航站。
 
-- 3000+ 动漫作品检索与分页浏览
-- 题材、类型、年代、来源、评分、排序等多维筛选
-- 系列追番顺序参考
-- 角色榜与角色聚类筛选
-- 正版观看入口跳转
-- 本季新番与公开资料检索
+## 这个网站能做什么
 
-说明一下名字：
+- 看 3000+ 动漫作品资料
+- 按题材、类型、年代、来源、评分快速筛选
+- 参考系列追番顺序
+- 看角色人气榜
+- 直接跳到哔哩哔哩、腾讯视频、爱奇艺、优酷等平台搜索
+- 在不翻墙的情况下完成大部分站内使用
 
-- `acgnavi.com` 现在作为项目品牌名使用
-- 因为还没有购买独立域名，所以公开网址仍然会使用 GitHub Pages 默认地址
+## 普通读者怎么打开
 
-## 公开访问地址
-
-代码仓库地址：
-
-- [GitHub 仓库](https://github.com/zhuchaoyi86-netizen/acg-anime-guide)
-
-公开网页地址（GitHub Pages 开启后使用）：
-
-- [GitHub Pages 网址](https://zhuchaoyi86-netizen.github.io/acg-anime-guide/)
-
-如果这个网址暂时打不开，通常不是代码问题，而是 **GitHub Pages 还没有在仓库设置里正式启用**。下面写了完整步骤。
-
-## 第一次让别人也能访问
-
-这一步只需要做一次。
-
-### 1. 打开 Pages 设置
-
-进入：
-
-- [Pages 设置页](https://github.com/zhuchaoyi86-netizen/acg-anime-guide/settings/pages)
-
-### 2. 设置发布方式
-
-在 `Build and deployment` 里：
-
-- `Source` 选择 `GitHub Actions`
-
-### 3. 重新运行自动发布
-
-进入：
-
-- [Actions 页面](https://github.com/zhuchaoyi86-netizen/acg-anime-guide/actions)
-
-找到工作流：
-
-- `Deploy GitHub Pages`
-
-点进去后：
-
-- 点击右上角 `Re-run jobs`
-- 如果看到下拉，选 `Re-run all jobs`
-
-### 4. 等待发布完成
-
-当发布成功后，别人就可以直接打开：
+公开网址：
 
 - [https://zhuchaoyi86-netizen.github.io/acg-anime-guide/](https://zhuchaoyi86-netizen.github.io/acg-anime-guide/)
 
-## 我自己怎么打开这个网站
+你只需要把上面这个链接发给别人，对方直接在浏览器打开就能用。
 
-你有两种打开方式。
+不需要：
 
-### 方法一：本地预览
+- 登录
+- 安装软件
+- 下载项目
+- 懂 GitHub
 
-适合你在电脑上改完立刻看效果。
+## 这个网站现在的使用方式
 
-在项目目录打开终端后运行：
+### 1. 首页快速筛选
 
-```bash
-python3 -m http.server 4180
-```
+首页上方可以直接筛：
 
-然后在浏览器打开：
+- 类型
+- 心情
+- 年代
+- 来源
+- 评分
+- 排序方式
+
+适合刚进站先缩小范围。
+
+### 2. 左侧看快速分类
+
+左侧不是装饰，它会根据当前筛选状态动态显示可用分类。
+
+你可以按：
+
+- 题材
+- 制作社
+- 创作者
+- 出版社
+
+来继续缩小作品范围。
+
+### 3. 看系列追番顺序
+
+`入门路线` 目前是按系列顺序整理的，不是泛泛推荐。
+
+例如：
+
+- Fate 系列
+- EVA 系列
+- 高达入门
+- JOJO 系列
+- 科学 ADV
+- 物语系列
+
+### 4. 打开作品详情
+
+点击作品卡片里的按钮后，可以看到：
+
+- 简介
+- 标签
+- 主要人物
+- 资料入口
+- 平台搜索入口
+
+### 5. 不翻墙也能怎么用
+
+这个版本已经把默认体验改成了“国内网络优先”：
+
+- 站内核心数据以本地资料库为主
+- 近期热门新番改为站内整理，不再依赖国外接口实时拉取
+- 平台跳转优先使用国内可访问入口
+- 资料入口优先使用 Bangumi、萌娘百科、百度百科
+
+也就是说，即使不翻墙，站内浏览、筛选、追番规划、平台跳转这几件事都可以正常完成。
+
+## 我自己怎么在电脑上打开最新版
+
+如果你是这个项目的维护者，想先在自己电脑上看效果，可以用本地预览：
+
+1. 在项目目录启动本地预览
+2. 浏览器打开：
 
 - [http://localhost:4180/index.html](http://localhost:4180/index.html)
 
-说明：
+这是本地地址，只能你自己电脑访问。
 
-- `localhost` 只能你自己电脑访问
-- 适合本地调试，不适合给别人发链接
+## 我怎么更新网站内容
 
-### 方法二：公开网页
+如果你只是想继续维护这个站，最常见的更新文件是：
 
-适合发给别人直接访问。
+- [index.html](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/index.html)
+- [styles.css](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/styles.css)
+- [app.js](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/app.js)
+- [anime-dataset.js](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/anime-dataset.js)
 
-地址是：
+### 更新流程
 
-- [https://zhuchaoyi86-netizen.github.io/acg-anime-guide/](https://zhuchaoyi86-netizen.github.io/acg-anime-guide/)
+1. 先改本地文件
+2. 先在本地预览里检查
+3. 再把改动推到 GitHub
+4. GitHub Pages 会自动发布
+5. 等 1 到 3 分钟后刷新公开网址
 
-前提是你先按上面的步骤把 GitHub Pages 启用好。
-
-## 后续怎么更新网站
-
-以后你每次改完网页，只需要：
-
-1. 修改本地文件
-2. 本地打开网页检查效果
-3. 提交到 GitHub
-4. 等 GitHub 自动重新发布
-
-### 常见要修改的文件
-
-- [index.html](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/index.html)：页面结构
-- [styles.css](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/styles.css)：页面样式
-- [app.js](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/app.js)：交互逻辑、精选数据、筛选逻辑
-- [anime-dataset.js](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/anime-dataset.js)：扩容后的大作品库
-
-### 更新命令
-
-如果你是在本地修改文件，更新网站常用流程是：
+如果你已经熟悉 Git，可以用这套最常见流程：
 
 ```bash
 git add .
@@ -124,84 +126,50 @@ git commit -m "更新网站内容"
 git push
 ```
 
-推送完成后：
-
-- GitHub Actions 会自动重新发布
-- 稍等一两分钟再刷新公开网址即可
-
-## 如果我只想小改文字，不想动终端
+## 如果我只想改一点文案
 
 也可以直接在 GitHub 网页里改：
 
 1. 打开仓库  
    [https://github.com/zhuchaoyi86-netizen/acg-anime-guide](https://github.com/zhuchaoyi86-netizen/acg-anime-guide)
 2. 点开要修改的文件
-3. 点击编辑按钮
+3. 直接编辑
 4. 保存提交
-5. 等 GitHub 自动发布
+5. 等自动发布完成
 
-这种方式适合：
+## 作品库怎么扩容
 
-- 改 README
-- 改页面文案
-- 改一些简单配置
-
-## 数据库怎么扩容或更新
-
-当前大作品库文件是：
+当前大作品库文件：
 
 - [anime-dataset.js](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/anime-dataset.js)
 
-生成脚本是：
+生成脚本：
 
-- [fetch-anime-dataset.mjs](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/scripts/fetch-anime-dataset.mjs)
+- [scripts/fetch-anime-dataset.mjs](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/scripts/fetch-anime-dataset.mjs)
 
-如果以后想重新抓取或继续扩容，可以运行：
+如果后续你还想继续扩容，可以重新生成作品库，然后把新数据一起发布。
 
-```bash
-node scripts/fetch-anime-dataset.mjs
-```
+## 这个项目适合谁
 
-跑完后记得再执行：
+适合：
 
-```bash
-git add anime-dataset.js scripts/fetch-anime-dataset.mjs
-git commit -m "更新动漫作品库"
-git push
-```
-
-## 让更多人稳定使用，有什么要求
-
-如果只是现在这种静态资料站，要求很低：
-
-- 有 GitHub 仓库
-- 开启 GitHub Pages
-- 保持代码能正常发布
-
-别人访问时不需要：
-
-- 登录
-- 安装软件
-- 下载项目
-
-只要能打开公开网址就能直接用。
+- 想快速找番的人
+- 想整理追番顺序的人
+- 想做自己的 ACG 导航站的人
+- 想把动漫资料页公开给朋友一起用的人
 
 ## 项目结构
 
 - `index.html`：页面结构
 - `styles.css`：页面样式
-- `app.js`：前端逻辑与站内精选数据
-- `anime-dataset.js`：公开作品库数据
-- `scripts/fetch-anime-dataset.mjs`：作品库抓取与生成脚本
-- `assets/`：背景图等站点资源
-- `.github/workflows/deploy-pages.yml`：GitHub Pages 自动发布配置
+- `app.js`：前端逻辑和精选资料
+- `anime-dataset.js`：扩容后的作品库
+- `scripts/fetch-anime-dataset.mjs`：生成作品库的脚本
+- `assets/`：图片资源
+- `.github/workflows/deploy-pages.yml`：自动发布配置
 
-## 数据说明
+## 仓库说明
 
-- 站内扩容作品库基于 Jikan 公共接口生成
-- 页面中的正版观看入口以各平台实时搜索结果为准
-- 角色榜为站内整理结果，并附日本站点参考入口
+如果你决定继续作为个人站维护，建议把 GitHub 仓库设成私有仓库，只保留网站对外访问。
 
-## 开源协议
-
-本项目采用 `MIT License`。
+这样别人仍然可以通过公开网址使用网站，但看不到你的源码仓库。
