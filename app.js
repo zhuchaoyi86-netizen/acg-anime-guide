@@ -774,7 +774,41 @@ function buildAnimeData() {
 }
 
 const animeData = buildAnimeData();
-const localPosterIds = new Set(baseAnimeData.map((item) => item.id));
+const localPosterIds = new Set([
+  "arcane",
+  "attack-on-titan",
+  "bang-dream",
+  "bocchi",
+  "clannad-after",
+  "classroom-elite",
+  "code-geass",
+  "cowboy-bebop",
+  "cyberpunk",
+  "demon-slayer",
+  "eva",
+  "fog-hill",
+  "frieren",
+  "fullmetal",
+  "gundam-witch",
+  "gurren-lagann",
+  "haikyu",
+  "horimiya",
+  "jujutsu",
+  "kaguya",
+  "kimi-no-na-wa",
+  "konosuba",
+  "link-click",
+  "love-live",
+  "made-in-abyss",
+  "madoka",
+  "mob-psycho",
+  "mushishi",
+  "one-piece",
+  "oshi-no-ko",
+  "scissor-seven",
+  "steins-gate",
+  "violet",
+]);
 
 function collectAnimeText(item) {
   return [
