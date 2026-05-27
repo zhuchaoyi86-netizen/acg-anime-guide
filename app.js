@@ -774,6 +774,7 @@ function buildAnimeData() {
 }
 
 const animeData = buildAnimeData();
+const localPosterIds = new Set(baseAnimeData.map((item) => item.id));
 
 function collectAnimeText(item) {
   return [
@@ -803,6 +804,20 @@ function matchesNamedCollection(item, collection = {}) {
 }
 
 const categoryViews = {
+  hot: {
+    label: "热门",
+    summary: "按站内热度、近期关注和高热方向快速筛选",
+    items: [
+      { key: "total", name: "热门总榜", desc: "默认先看站内热度最高的一批作品", ids: [] },
+      { key: "recent", name: "近年热门", desc: "优先看 2022 年后的高热作品", ids: [] },
+      { key: "classic", name: "经典高热", desc: "老牌口碑作和常年有人补的作品", ids: [] },
+      { key: "starter", name: "入坑首选", desc: "适合第一次来站里时先看的主流热门", ids: [] },
+      { key: "battle", name: "热血热门", desc: "动作、冒险和燃系主流高热区", ids: [] },
+      { key: "healing", name: "治愈热门", desc: "轻松、陪伴和情绪价值更高的热门区", ids: [] },
+      { key: "movie", name: "剧场版热门", desc: "高热动画电影和大银幕补番入口", ids: [] },
+      { key: "donghua", name: "国创热门", desc: "优先看国内更容易继续追的国创条目", ids: [] },
+    ],
+  },
   theme: {
     label: "题材",
     summary: "按题材与观看气质筛选",
@@ -1017,7 +1032,7 @@ const savedCount = document.querySelector("#savedCount");
 
 let saved = JSON.parse(localStorage.getItem(savedKey) || "[]");
 let activeDetailId = "";
-let activeCategoryView = "theme";
+let activeCategoryView = "hot";
 let activeCategoryKey = "";
 let currentPage = 1;
 const pageSize = 18;
@@ -1291,6 +1306,81 @@ function resolveCover(item) {
   return !isMissingCover(externalMatch?.cover) ? externalMatch.cover : fallbackCover;
 }
 
+function escapeSvgText(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildItemFallbackCover(item) {
+  const subtitle = [item.type, item.year, ...(item.genres || []).slice(0, 2)].filter(Boolean).join(" / ");
+  return (
+    "data:image/svg+xml;charset=UTF-8," +
+    encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f8fbff"/>
+            <stop offset="100%" stop-color="#dce8f7"/>
+          </linearGradient>
+        </defs>
+        <rect width="900" height="540" rx="28" fill="url(#g)"/>
+        <circle cx="756" cy="118" r="92" fill="#a9caea" opacity="0.32"/>
+        <circle cx="168" cy="432" r="124" fill="#8bb5df" opacity="0.18"/>
+        <text x="68" y="112" fill="#37506b" font-size="22" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">acgnavi</text>
+        <foreignObject x="68" y="148" width="760" height="188">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, PingFang SC, Microsoft YaHei, sans-serif; color: #112033; font-size: 42px; font-weight: 700; line-height: 1.25;">
+            ${escapeSvgText(item.title || "动漫资料")}
+          </div>
+        </foreignObject>
+        <text x="68" y="390" fill="#51657a" font-size="25" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">${escapeSvgText(subtitle || "海报缓存缺失，已切换为本地备用图")}</text>
+        <text x="68" y="446" fill="#6d8094" font-size="22" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">当前网络未能拉取原始海报，仍可继续查看资料与平台入口</text>
+      </svg>
+    `)
+  );
+}
+
+function getLocalPosterPath(item) {
+  return localPosterIds.has(item.id) ? `assets/posters/${item.id}.jpg` : "";
+}
+
+function getCoverCandidates(item) {
+  const localPoster = getLocalPosterPath(item);
+  const resolved = resolveCover(item);
+  return [...new Set([localPoster, resolved].filter(Boolean))];
+}
+
+function getPrimaryCover(item) {
+  return getCoverCandidates(item)[0] || buildItemFallbackCover(item);
+}
+
+function getSecondaryCover(item) {
+  return getCoverCandidates(item)[1] || buildItemFallbackCover(item);
+}
+
+function buildImageAttrs(item, kind = "海报") {
+  const primary = getPrimaryCover(item);
+  const secondary = getSecondaryCover(item);
+  const finalFallback = buildItemFallbackCover(item);
+  return `src="${primary}" data-alt-src="${secondary}" data-final-src="${finalFallback}" alt="${item.title} ${kind}" loading="lazy" onerror="window.handleMediaFallback(event)"`;
+}
+
+window.handleMediaFallback = function handleMediaFallback(event) {
+  const image = event.currentTarget;
+  if (!image) return;
+
+  if (image.dataset.altSrc && image.src !== image.dataset.altSrc) {
+    image.src = image.dataset.altSrc;
+    return;
+  }
+
+  image.onerror = null;
+  image.src = image.dataset.finalSrc || fallbackCover;
+};
+
 function getCategoryViewItems(viewKey = activeCategoryView) {
   return categoryViews[viewKey]?.items || [];
 }
@@ -1373,6 +1463,54 @@ function getHeatScore(item) {
 
   return characterBoost + sourceBoost + scoreBoost + yearBoost + audienceBoost;
 }
+
+function pickTopAnimeIds({ predicate = () => true, sort = "hot", limit = 18 } = {}) {
+  return sortAnimeList(animeData.filter(predicate), sort)
+    .slice(0, limit)
+    .map((item) => item.id);
+}
+
+function setCategoryIds(viewKey, categoryKey, ids) {
+  const target = categoryViews[viewKey]?.items.find((item) => item.key === categoryKey);
+  if (target) target.ids = ids;
+}
+
+function hydrateHotCategoryView() {
+  setCategoryIds("hot", "total", pickTopAnimeIds({ limit: 24 }));
+  setCategoryIds("hot", "recent", pickTopAnimeIds({ predicate: (item) => getNumericYear(item) >= 2022, sort: "hot", limit: 24 }));
+  setCategoryIds(
+    "hot",
+    "classic",
+    pickTopAnimeIds({ predicate: (item) => getNumericYear(item) > 0 && getNumericYear(item) < 2020 && getNumericScore(item) >= 8.4, sort: "hot", limit: 24 }),
+  );
+  setCategoryIds(
+    "hot",
+    "starter",
+    pickTopAnimeIds({ predicate: (item) => getNumericScore(item) >= 8.3 && getNumericYear(item) >= 2010, sort: "hot", limit: 18 }),
+  );
+  setCategoryIds(
+    "hot",
+    "battle",
+    pickTopAnimeIds({
+      predicate: (item) => includesAnyTerm(item, ["燃", "战斗", "热血", "少年", "冒险", "动作", "action", "shounen"]),
+      sort: "hot",
+      limit: 18,
+    }),
+  );
+  setCategoryIds(
+    "hot",
+    "healing",
+    pickTopAnimeIds({
+      predicate: (item) => item.moods.includes("治愈") || item.moods.includes("轻松") || includesAnyTerm(item, ["治愈", "轻松", "陪伴", "日常"]),
+      sort: "hot",
+      limit: 18,
+    }),
+  );
+  setCategoryIds("hot", "movie", pickTopAnimeIds({ predicate: (item) => item.type === "Movie", sort: "hot", limit: 18 }));
+  setCategoryIds("hot", "donghua", pickTopAnimeIds({ predicate: (item) => matchesSourceFilter(item, "donghua"), sort: "hot", limit: 18 }));
+}
+
+hydrateHotCategoryView();
 
 function getFilterState(options = {}) {
   const keyword = (options.keyword ?? searchInput.value).trim().toLowerCase();
@@ -1502,7 +1640,7 @@ function renderAnime() {
       (item, index) => `
       <article class="anime-card" style="--card-index: ${index}">
         <div class="poster">
-          <img src="${resolveCover(item)}" alt="${item.title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+          <img ${buildImageAttrs(item)} />
           <span class="score">${item.score}</span>
         </div>
         <div class="card-body">
@@ -1541,10 +1679,15 @@ function loadTrailerForDetail(item) {
   const target = document.querySelector("#detailVideo");
   target.innerHTML = `
     <div class="video-empty with-poster">
-      <img src="${resolveCover(item)}" alt="${item.title} 预告片入口" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+      <img ${buildImageAttrs(item, "预告片入口")} />
       <div>
         <strong>预告片与片段入口</strong>
-        <a href="${bilibiliSearchUrl(`${item.title} PV 预告片`)}" target="_blank" rel="noreferrer">去哔哩哔哩搜索 PV / 切片</a>
+        <p>优先给出国内可访问入口，直接继续看 PV、正式预告、MAD 或剪辑片段。</p>
+        <div class="platform-chip-row">
+          <a class="platform-chip" href="${bilibiliSearchUrl(`${item.title} PV 预告片`)}" target="_blank" rel="noreferrer">哔哩哔哩 PV</a>
+          <a class="platform-chip" href="${searchUrl(platforms[1], `${item.title} 预告片`)}" target="_blank" rel="noreferrer">腾讯视频搜索</a>
+          <a class="platform-chip" href="${searchUrl(platforms[2], `${item.title} 预告片`)}" target="_blank" rel="noreferrer">爱奇艺搜索</a>
+        </div>
       </div>
     </div>
   `;
@@ -1748,7 +1891,7 @@ function renderWikiLinks(item) {
 }
 
 function loadDetailExtras(item) {
-  const fallbackImages = [resolveCover(item), fallbackCover];
+  const fallbackImages = [...getCoverCandidates(item), buildItemFallbackCover(item)];
   const fallbackCharacters = (localDetailData[item.id]?.characters || []).map((name) => ({
     name,
     role: "主要角色",
@@ -1780,7 +1923,7 @@ function openDetail(id) {
   document.querySelector("#detailMeta").textContent = `${item.type} / ${item.year} / ${item.moods.join("、")}`;
   document.querySelector("#detailTitle").textContent = item.title;
   document.querySelector("#detailSummary").textContent = item.summary;
-  renderPreview([resolveCover(item)], item.title);
+  renderPreview([...getCoverCandidates(item), buildItemFallbackCover(item)], item.title);
   resetDetailMedia();
   renderCharacters([], item.title);
   renderWikiLinks(item);
@@ -1834,7 +1977,7 @@ function performSearch({ online = false } = {}) {
 function buildSeasonalPool() {
   return sortAnimeList(
     animeData.filter((item) => getNumericYear(item) >= 2022),
-    "newest",
+    "hot",
   ).slice(0, 48);
 }
 
@@ -1855,7 +1998,7 @@ function refreshSeasonalAnime() {
       (item, index) => `
         <article class="anime-card compact-card" style="--card-index: ${index}">
           <div class="poster">
-            <img src="${resolveCover(item)}" alt="${item.title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+            <img ${buildImageAttrs(item)} />
             <span class="score">${item.score}</span>
           </div>
           <div class="card-body">
@@ -1895,7 +2038,7 @@ function runOnlineSearch() {
           (item) => `
             <article class="anime-card compact-card">
               <div class="poster">
-                <img src="${resolveCover(item)}" alt="${item.title} 海报" loading="lazy" onerror="this.onerror=null;this.src='${fallbackCover}'" />
+                <img ${buildImageAttrs(item)} />
                 <span class="score">${item.score}</span>
               </div>
               <div class="card-body">
@@ -2046,7 +2189,7 @@ document.querySelector("#resetFilters").addEventListener("click", () => {
   sortFilter.value = "hot";
   resetPage();
   activeCategoryKey = "";
-  activeCategoryView = "theme";
+  activeCategoryView = "hot";
   renderCategories();
   renderAnime();
   renderPlatforms();

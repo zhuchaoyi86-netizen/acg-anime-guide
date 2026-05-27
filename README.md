@@ -19,6 +19,11 @@
 
 - [https://zhuchaoyi86-netizen.github.io/acg-anime-guide/](https://zhuchaoyi86-netizen.github.io/acg-anime-guide/)
 
+如果你想让国内访问更稳，建议同时准备一个 `Gitee Pages` 镜像站。
+这个仓库已经附带了同步工作流模板：
+
+- [/.github/workflows/sync-gitee.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/sync-gitee.yml)
+
 你只需要把上面这个链接发给别人，对方直接在浏览器打开就能用。
 
 不需要：
@@ -90,6 +95,11 @@
 
 也就是说，即使不翻墙，站内浏览、筛选、追番规划、平台跳转这几件事都可以正常完成。
 
+这次更新还额外做了两件事：
+
+- 首页热门区和默认分类改成了“热门优先”
+- 常用海报和图标改为项目内置，本地优先加载，减少外部资源失效
+
 ## 我自己怎么在电脑上打开最新版
 
 如果你是这个项目的维护者，想先在自己电脑上看效果，可以用本地预览：
@@ -117,6 +127,12 @@
 3. 再把改动推到 GitHub
 4. GitHub Pages 会自动发布
 5. 等 1 到 3 分钟后刷新公开网址
+
+如果你还准备了 Gitee Pages：
+
+6. 在 GitHub 仓库里配置 `GITEE_USERNAME`、`GITEE_REPO`、`GITEE_SSH_KEY`
+7. 每次推送到 `main` 后，会自动同步到 Gitee 镜像仓库
+8. 再从 Gitee Pages 提供一个国内入口给访客使用
 
 如果你已经熟悉 Git，可以用这套最常见流程：
 
@@ -166,7 +182,10 @@ git push
 - `anime-dataset.js`：扩容后的作品库
 - `scripts/fetch-anime-dataset.mjs`：生成作品库的脚本
 - `assets/`：图片资源
+- `assets/posters/`：本地缓存的热门海报
+- `assets/lucide.min.js`：本地图标脚本
 - `.github/workflows/deploy-pages.yml`：自动发布配置
+- `.github/workflows/sync-gitee.yml`：同步到 Gitee 的模板
 
 ## 仓库说明
 

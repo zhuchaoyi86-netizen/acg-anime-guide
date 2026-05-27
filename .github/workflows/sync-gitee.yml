@@ -1,0 +1,34 @@
+name: Sync To Gitee
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync:
+    if: ${{ secrets.GITEE_REPO != '' && secrets.GITEE_USERNAME != '' && secrets.GITEE_SSH_KEY != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup SSH
+        env:
+          GITEE_SSH_KEY: ${{ secrets.GITEE_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf "%s" "$GITEE_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan gitee.com >> ~/.ssh/known_hosts
+
+      - name: Push to Gitee mirror
+        env:
+          GITEE_USERNAME: ${{ secrets.GITEE_USERNAME }}
+          GITEE_REPO: ${{ secrets.GITEE_REPO }}
+        run: |
+          git remote add gitee "git@gitee.com:${GITEE_USERNAME}/${GITEE_REPO}.git"
+          git push gitee HEAD:main --force
