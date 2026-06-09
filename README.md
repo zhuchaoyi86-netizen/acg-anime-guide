@@ -19,10 +19,12 @@
 
 - [https://zhuchaoyi86-netizen.github.io/acg-anime-guide/](https://zhuchaoyi86-netizen.github.io/acg-anime-guide/)
 
-如果你想让国内访问更稳，建议同时准备一个 `Gitee Pages` 镜像站。
-这个仓库已经附带了同步工作流模板：
+如果你想让国内访问更稳，建议准备一个国内静态托管入口。
+
+这个仓库现在附带了两套发布模板：
 
 - [/.github/workflows/sync-gitee.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/sync-gitee.yml)
+- [/.github/workflows/deploy-tencent-cos.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/deploy-tencent-cos.yml)
 
 你只需要把上面这个链接发给别人，对方直接在浏览器打开就能用。
 
@@ -128,11 +130,17 @@
 4. GitHub Pages 会自动发布
 5. 等 1 到 3 分钟后刷新公开网址
 
-如果你还准备了 Gitee Pages：
+如果你准备了 Gitee 镜像仓库：
 
 6. 在 GitHub 仓库里配置 `GITEE_USERNAME`、`GITEE_REPO`、`GITEE_SSH_KEY`
 7. 每次推送到 `main` 后，会自动同步到 Gitee 镜像仓库
-8. 再从 Gitee Pages 提供一个国内入口给访客使用
+
+如果你准备把站点发布到腾讯云 COS 静态网站：
+
+8. 在 GitHub 仓库里配置 `COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION`
+9. 开启 COS 存储桶的静态网站功能
+10. 每次推送到 `main` 后，会自动把 `dist/` 里的站点文件同步到 COS
+11. 把 COS 静态网站地址或你绑定的自定义域名发给访客
 
 如果你已经熟悉 Git，可以用这套最常见流程：
 
@@ -186,6 +194,8 @@ git push
 - `assets/lucide.min.js`：本地图标脚本
 - `.github/workflows/deploy-pages.yml`：自动发布配置
 - `.github/workflows/sync-gitee.yml`：同步到 Gitee 的模板
+- `.github/workflows/deploy-tencent-cos.yml`：发布到腾讯云 COS 的模板
+- `scripts/build-static-site.mjs`：生成发布目录 `dist/`
 
 ## 仓库说明
 
