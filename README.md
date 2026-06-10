@@ -25,6 +25,7 @@
 
 - [/.github/workflows/sync-gitee.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/sync-gitee.yml)
 - [/.github/workflows/deploy-tencent-cos.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/deploy-tencent-cos.yml)
+- [/docs/tencent-cos-deploy.md](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/docs/tencent-cos-deploy.md)
 
 你只需要把上面这个链接发给别人，对方直接在浏览器打开就能用。
 
