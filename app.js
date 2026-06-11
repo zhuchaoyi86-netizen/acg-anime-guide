@@ -756,10 +756,10 @@ function mergeAnimeItem(target, incoming) {
   };
 }
 
-function buildAnimeData() {
+function buildAnimeData(externalAnimeData = window.externalAnimeData || []) {
   const combined = [
     ...baseAnimeData,
-    ...(window.externalAnimeData || []).filter(
+    ...externalAnimeData.filter(
       (externalItem) => !baseAnimeData.some((baseItem) => baseItem.id === externalItem.id),
     ),
   ].map((item, index) => normalizeAnimeItem(item, index));
@@ -773,7 +773,8 @@ function buildAnimeData() {
   return [...merged.values()];
 }
 
-const animeData = buildAnimeData();
+let animeData = buildAnimeData(window.externalAnimeData || []);
+let externalDatasetLoaded = Array.isArray(window.externalAnimeData) && window.externalAnimeData.length > 0;
 const localPosterIds = new Set([
   "arcane",
   "attack-on-titan",
@@ -2311,14 +2312,64 @@ function createMotionLayer() {
   layer.replaceChildren(...petals, ...sparks);
 }
 
+function rerenderDynamicContent() {
+  renderCategories();
+  renderPlatforms();
+  renderRoute();
+  renderAnime();
+  renderSaved();
+  renderCharacterRankings();
+  renderSiteInfo();
+  renderCatalogCounts();
+  refreshSeasonalAnime();
+  runOnlineSearch();
+}
+
+function loadExternalDataset() {
+  if (externalDatasetLoaded) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const existingScript = document.querySelector('script[data-external-dataset="true"]');
+    if (existingScript) {
+      existingScript.addEventListener("load", () => resolve(), { once: true });
+      existingScript.addEventListener("error", () => resolve(), { once: true });
+      return;
+    }
+
+    const datasetScript = document.createElement("script");
+    datasetScript.src = "anime-dataset.js?v=3000";
+    datasetScript.defer = true;
+    datasetScript.dataset.externalDataset = "true";
+    datasetScript.addEventListener(
+      "load",
+      () => {
+        animeData = buildAnimeData(window.externalAnimeData || []);
+        externalDatasetLoaded = true;
+        rerenderDynamicContent();
+        resolve();
+      },
+      { once: true },
+    );
+    datasetScript.addEventListener("error", () => resolve(), { once: true });
+    document.body.append(datasetScript);
+  });
+}
+
+function scheduleExternalDatasetLoad() {
+  const kickoff = () => {
+    window.setTimeout(() => {
+      loadExternalDataset();
+    }, 120);
+  };
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(kickoff, { timeout: 1200 });
+    return;
+  }
+
+  window.setTimeout(kickoff, 260);
+}
+
 createMotionLayer();
-renderCategories();
-renderPlatforms();
-renderRoute();
-renderAnime();
-renderSaved();
-renderCharacterRankings();
-renderSiteInfo();
-renderCatalogCounts();
-refreshSeasonalAnime();
-runOnlineSearch();
+rerenderDynamicContent();
+scheduleExternalDatasetLoad();

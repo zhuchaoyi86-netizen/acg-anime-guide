@@ -21,10 +21,11 @@
 
 如果你想让国内访问更稳，建议准备一个国内静态托管入口。
 
-这个仓库现在附带了两套发布模板：
+这个仓库现在附带了三套发布模板：
 
 - [/.github/workflows/sync-gitee.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/sync-gitee.yml)
 - [/.github/workflows/deploy-tencent-cos.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/deploy-tencent-cos.yml)
+- [/.github/workflows/deploy-edgeone-pages.yml](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/.github/workflows/deploy-edgeone-pages.yml)
 - [/docs/tencent-cos-deploy.md](/Users/xinxinhuashe/Documents/二次元动漫检索推荐网页/docs/tencent-cos-deploy.md)
 
 你只需要把上面这个链接发给别人，对方直接在浏览器打开就能用。
@@ -143,6 +144,14 @@
 10. 每次推送到 `main` 后，会自动把 `dist/` 里的站点文件同步到 COS
 11. 把 COS 静态网站地址或你绑定的自定义域名发给访客
 
+如果你准备继续用 `EdgeOne Pages` 作为正式访问入口：
+
+8. 在 EdgeOne Pages 控制台生成一个 `API Token`
+9. 在 GitHub 仓库里新增 `EDGEONE_API_TOKEN`
+10. 保持项目名为 `acgnavi`
+11. 每次推送到 `main` 后，`Deploy To EdgeOne Pages` 会自动把 `dist/` 发布到线上
+12. `www.acgnavi.online` 绑定完成后，后续就不需要再手工上传
+
 如果你已经熟悉 Git，可以用这套最常见流程：
 
 ```bash
@@ -196,7 +205,9 @@ git push
 - `.github/workflows/deploy-pages.yml`：自动发布配置
 - `.github/workflows/sync-gitee.yml`：同步到 Gitee 的模板
 - `.github/workflows/deploy-tencent-cos.yml`：发布到腾讯云 COS 的模板
+- `.github/workflows/deploy-edgeone-pages.yml`：发布到 EdgeOne Pages 的模板
 - `scripts/build-static-site.mjs`：生成发布目录 `dist/`
+- `edgeone.json`：EdgeOne Pages 构建配置
 
 ## 仓库说明
 
